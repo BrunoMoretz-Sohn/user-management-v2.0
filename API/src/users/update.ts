@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';  
 
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await prisma.user.update({
       where: {
@@ -18,4 +18,5 @@ export const updateUser = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Erro ao atualizar usuário' });
   }
 };
+
 
