@@ -8,7 +8,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["DOM", "ESNext"],
-    "noImplicitAny": true
+    "typeRoots": ["./node_modules/@types", "./src/@types"],
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "baseUrl": "./src",
+    "paths": {
+      "*": ["node_modules/*", "*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

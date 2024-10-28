@@ -15,7 +15,7 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       globals: globals.browser,
-      parser: typescriptEslintParser, // Adicionando o parser do TypeScript
+      parser: typescriptEslintParser,
       parserOptions: {
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },
@@ -36,12 +36,17 @@ export default [
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
+      'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': ['warn'],
+      'no-unused-vars': 'off',
       'react/jsx-no-target-blank': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
+      'react/react-in-jsx-scope': 'off',
+      'no-undef': 'off',
     },
   },
 ];
+
