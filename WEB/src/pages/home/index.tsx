@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getUsers, createUser, getUser, updateUser, deleteUser } from '../../services/userService';
+import { getUsers, createUser, getUser, updateUser, deleteUser, User } from '../../services/userService';
 import FormRegister from '../../components/FormRegister';
 import FormSearch from '../../components/FormSearch';
 import FormEdit from '../../components/FormEdit';
@@ -8,8 +8,8 @@ import { TbUserEdit, TbTrash } from 'react-icons/tb';
 import Logo from '../../assets/Logo.png';
 
 function Home(): JSX.Element {
-  const [users, setUsers] = useState<any[]>([]);
-  const [userToEdit, setUserToEdit] = useState<any>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [searchParam, setSearchParam] = useState<string>('');
   const [editName, setEditName] = useState<string>('');
   const [editEmail, setEditEmail] = useState<string>('');
@@ -17,43 +17,63 @@ function Home(): JSX.Element {
 
   useEffect(() => {
     async function fetchData() {
-      const usersData = await getUsers();
-      setUsers(usersData);
+      try {
+        const usersData = await getUsers();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        alert('Erro ao buscar usuários. Tente novamente mais tarde.');
+      }
     }
     fetchData();
   }, []);
 
   const handleCreateUser = async (name: string, email: string, birthDate: string) => {
-    await createUser(name, email, birthDate);
-    const usersData = await getUsers();
-    setUsers(usersData);
+    try {
+      await createUser(name, email, birthDate);
+      const usersData = await getUsers();
+      setUsers(Array.isArray(usersData) ? usersData : []);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      alert('Erro ao criar usuário. Tente novamente.');
+    }
   };
 
   const handleGetUser = async () => {
-    const user = await getUser(searchParam);
-    if (user) {
-      setUsers([user]);
-      setUserToEdit(user);
-      setEditName(user.name);
-      setEditEmail(user.email);
-      setEditBirthDate(dayjs(user.birthDate).format('YYYY-MM-DD'));
-    } else {
-      setUsers([]);
-      setUserToEdit(null);
-      alert('Nenhum usuário encontrado.');
+    try {
+      const user = await getUser(searchParam);
+      if (user) {
+        setUsers([user]);
+        setUserToEdit(user);
+        setEditName(user.name);
+        setEditEmail(user.email);
+        setEditBirthDate(dayjs(user.birthDate).format('YYYY-MM-DD'));
+      } else {
+        setUsers([]);
+        setUserToEdit(null);
+        alert('Nenhum usuário encontrado.');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      alert('Erro ao buscar usuário. Verifique os dados e tente novamente.');
     }
   };
 
   const handleUpdateUser = async () => {
     if (userToEdit) {
-      await updateUser(userToEdit.id, editName, editEmail, editBirthDate);
-      const usersData = await getUsers();
-      setUsers(usersData);
-      setUserToEdit(null);
+      try {
+        await updateUser(userToEdit.id, editName, editEmail, editBirthDate);
+        const usersData = await getUsers();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+        setUserToEdit(null);
+      } catch (error) {
+        console.error('Erro ao atualizar usuário:', error);
+        alert('Erro ao atualizar usuário. Tente novamente.');
+      }
     }
   };
 
-  const handleEditUser = (user: any) => {
+  const handleEditUser = (user: User) => {
     setUserToEdit(user);
     setEditName(user.name);
     setEditEmail(user.email);
@@ -64,9 +84,10 @@ function Home(): JSX.Element {
     try {
       await deleteUser(id);
       const usersData = await getUsers();
-      setUsers(usersData);
+      setUsers(Array.isArray(usersData) ? usersData : []);
     } catch (error) {
       console.error('Erro ao excluir usuário:', error);
+      alert('Erro ao excluir usuário. Tente novamente.');
     }
   };
 
@@ -108,24 +129,28 @@ function Home(): JSX.Element {
               <p>Utilize as opções de edição e exclusão para gerenciar os dados.</p>
             </header>
             <div className='users-list'>
-              {users.map((user) => (
-                <div key={user.id} className="card">
-                  <div>
-                    <p>Nome: <span>{user.name}</span></p>
-                    <p>Email: <span>{user.email}</span></p>
-                    <p>Data de Nascimento: <span>{dayjs(user.birthDate).format('DD-MM-YYYY')}</span></p>
-                    <p>ID: <span>{user.id}</span></p>
+              {users.length > 0 ? (
+                users.map((user) => (
+                  <div key={user.id} className="card">
+                    <div>
+                      <p>Nome: <span>{user.name}</span></p>
+                      <p>Email: <span>{user.email}</span></p>
+                      <p>Data de Nascimento: <span>{dayjs(user.birthDate).format('DD-MM-YYYY')}</span></p>
+                      <p>ID: <span>{user.id}</span></p>
+                    </div>
+                    <div className="user-button">
+                      <button onClick={() => handleEditUser(user)}>
+                        <TbUserEdit id="edit-icon" className="user-icon" />
+                      </button>
+                      <button onClick={() => handleDeleteUser(user.id)}>
+                        <TbTrash id="delete-icon" className="user-icon" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="user-button">
-                    <button onClick={() => handleEditUser(user)}>
-                      <TbUserEdit id="edit-icon" className="user-icon" />
-                    </button>
-                    <button onClick={() => handleDeleteUser(user.id)}>
-                      <TbTrash id="delete-icon" className="user-icon" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p>Nenhum usuário encontrado.</p>
+              )}
             </div>
           </div>
         </div>
@@ -135,3 +160,4 @@ function Home(): JSX.Element {
 }
 
 export default Home;
+
