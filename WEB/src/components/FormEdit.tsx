@@ -2,6 +2,8 @@ import '../pages/home/style.css';
 import { useState } from 'react';
 import { RiCalendar2Line, RiAccountBoxLine, RiAtLine } from "react-icons/ri";
 import { deleteUser } from '../services/userService';
+import Button from '../components/commons/Button';  
+import InputField from '../components/commons/InputField';  
 
 interface User {
   id: string;
@@ -49,48 +51,47 @@ const FormEdit: React.FC<FormEditProps> = ({
         <h1>Editar Usuário</h1>
         <p>Confirme as alterações clicando em &quot;Atualizar&quot;.</p>
       </header>
-      <div className="input-container">
-        <RiAccountBoxLine className="input-icon" />
-        <input
-          type='text'
-          id="editName"
-          name="editName"
-          value={editName}
-          onChange={(e) => setEditName(e.target.value)}
-          placeholder='Nome'
-        />
-      </div>
-      <div className="input-container">
-        <RiAtLine className="input-icon" />
-        <input
-          type='email'
-          id="editEmail"
-          name="editEmail"
-          value={editEmail}
-          onChange={(e) => setEditEmail(e.target.value)}
-          placeholder='Email'
-        />
-      </div>
-      <div className="input-container">
-        <RiCalendar2Line className="input-icon" />
-        <input
-          type='date'
-          id="editBirthDate"
-          name="editBirthDate"
-          value={editBirthDate}
-          onChange={(e) => setEditBirthDate(e.target.value)}
-          placeholder='Data de Nascimento'
-        />
-      </div>
-      <button type='button' onClick={onSave}>Atualizar</button>
-      <button type='button' onClick={onCancel}>Cancelar</button>
-      <button type='button' onClick={handleDelete}>Excluir</button>
+      <InputField 
+        id="editName" 
+        name="editName" 
+        value={editName} 
+        onChange={(e) => setEditName(e.target.value)} 
+        placeholder="Nome" 
+        icon={<RiAccountBoxLine className="input-icon" />} 
+        type="text"
+      />
+      <InputField 
+        id="editEmail" 
+        name="editEmail" 
+        value={editEmail} 
+        onChange={(e) => setEditEmail(e.target.value)} 
+        placeholder="Email" 
+        icon={<RiAtLine className="input-icon" />} 
+        type="email"
+      />
+      <InputField 
+        id="editBirthDate" 
+        name="editBirthDate" 
+        value={editBirthDate} 
+        onChange={(e) => setEditBirthDate(e.target.value)} 
+        placeholder="Data de Nascimento" 
+        icon={<RiCalendar2Line className="input-icon" />} 
+        type="date"
+      />
+      <Button onClick={onSave} type="button" text="Atualizar" />
+      <Button onClick={onCancel} type="button" text="Cancelar" />
+      <Button onClick={handleDelete} type="button" text="Excluir" />
       {message && <p>{message}</p>}
     </form>
   );
 };
 
 export default FormEdit;
+
+
+
+
+
 
 
 

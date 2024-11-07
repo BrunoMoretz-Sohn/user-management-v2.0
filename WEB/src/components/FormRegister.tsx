@@ -1,6 +1,8 @@
 import '../pages/home/style.css';
 import { useRef, useState } from 'react';
 import { RiCalendar2Line, RiAccountBoxLine, RiAtLine } from "react-icons/ri";
+import Button from '../components/commons/Button';
+import InputField from '../components/commons/InputField';
 
 interface FormRegisterProps {
   onSubmit: (name: string, email: string, birthDate: string) => void;
@@ -29,9 +31,9 @@ const FormRegister: React.FC<FormRegisterProps> = ({ onSubmit }) => {
     setMessage('Usuário cadastrado com sucesso!');
     setError('');
 
-    inputName.current && (inputName.current.value = '');
-    inputEmail.current && (inputEmail.current.value = '');
-    inputBirthDate.current && (inputBirthDate.current.value = '');
+    if (inputName.current) inputName.current.value = '';
+    if (inputEmail.current) inputEmail.current.value = '';
+    if (inputBirthDate.current) inputBirthDate.current.value = '';
 
     setTimeout(() => setMessage(''), 3000);
   };
@@ -42,24 +44,38 @@ const FormRegister: React.FC<FormRegisterProps> = ({ onSubmit }) => {
         <h1>Cadastro de Usuários</h1>
         <p>Preencha os campos abaixo para cadastrar um novo usuário.</p>
       </header>
-      <div className="input-container">
-        <RiAccountBoxLine className="input-icon" />
-        <input placeholder="Nome" id="name" name="name" type='text' autoComplete="off" ref={inputName} />
-      </div>
-      <div className="input-container">
-        <RiAtLine className="input-icon" />
-        <input placeholder="Email" id="email" name="email" type='email' autoComplete="off" ref={inputEmail} />
-      </div>
+      <InputField
+        id="name"
+        name="name"
+        placeholder="Nome"
+        icon={<RiAccountBoxLine className="input-icon" />}
+        type="text"
+        inputRef={inputName}
+      />
+      <InputField
+        id="email"
+        name="email"
+        placeholder="Email"
+        icon={<RiAtLine className="input-icon" />}
+        type="email"
+        inputRef={inputEmail}
+      />
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div className="input-container">
-        <RiCalendar2Line className="input-icon" />
-        <input placeholder="Data de Nascimento" id="birthDate" name="birthDate" type='date' ref={inputBirthDate} />
-      </div>
-      <button type='button' onClick={handleSubmit}>Cadastrar</button>
+      <InputField
+        id="birthDate"
+        name="birthDate"
+        placeholder="Data de Nascimento"
+        icon={<RiCalendar2Line className="input-icon" />}
+        type="date"
+        inputRef={inputBirthDate}
+      />
+      <Button type="button" onClick={handleSubmit} text="Cadastrar" />
       {message && <p>{message}</p>}
     </form>
   );
 };
 
 export default FormRegister;
+
+
 
