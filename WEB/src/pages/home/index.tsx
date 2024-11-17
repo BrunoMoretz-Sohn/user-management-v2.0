@@ -1,95 +1,19 @@
 import { useState, useEffect } from 'react';
-import { getUsers, createUser, getUser, updateUser, deleteUser, User } from '../../services/userService';
 import FormRegister from '../../components/FormRegister';
 import FormSearch from '../../components/FormSearch';
 import FormEdit from '../../components/FormEdit';
 import dayjs from 'dayjs';
 import { TbUserEdit, TbTrash } from 'react-icons/tb';
 import Logo from '../../assets/Logo.png';
+import { useUserActions } from '../../hooks/useUserActions';
 
 function Home(): JSX.Element {
-  const [users, setUsers] = useState<User[]>([]);
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [searchParam, setSearchParam] = useState<string>('');
-  const [editName, setEditName] = useState<string>('');
-  const [editEmail, setEditEmail] = useState<string>('');
-  const [editBirthDate, setEditBirthDate] = useState<string>('');
+  const { users, userToEdit, editName, setEditName, editEmail, setEditEmail, editBirthDate, setEditBirthDate, fetchUsers, handleCreateUser, handleGetUser, handleUpdateUser, handleEditUser, handleDeleteUser } = useUserActions();
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const usersData = await getUsers();
-        setUsers(Array.isArray(usersData) ? usersData : []);
-      } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
-        alert('Erro ao buscar usuários. Tente novamente mais tarde.');
-      }
-    }
-    fetchData();
-  }, []);
-
-  const handleCreateUser = async (name: string, email: string, birthDate: string) => {
-    try {
-      await createUser(name, email, birthDate);
-      const usersData = await getUsers();
-      setUsers(Array.isArray(usersData) ? usersData : []);
-    } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      alert('Erro ao criar usuário. Tente novamente.');
-    }
-  };
-
-  const handleGetUser = async () => {
-    try {
-      const user = await getUser(searchParam);
-      if (user) {
-        setUsers([user]);
-        setUserToEdit(user);
-        setEditName(user.name);
-        setEditEmail(user.email);
-        setEditBirthDate(dayjs(user.birthDate).format('YYYY-MM-DD'));
-      } else {
-        setUsers([]);
-        setUserToEdit(null);
-        alert('Nenhum usuário encontrado.');
-      }
-    } catch (error) {
-      console.error('Erro ao buscar usuário:', error);
-      alert('Erro ao buscar usuário. Verifique os dados e tente novamente.');
-    }
-  };
-
-  const handleUpdateUser = async () => {
-    if (userToEdit) {
-      try {
-        await updateUser(userToEdit.id, editName, editEmail, editBirthDate);
-        const usersData = await getUsers();
-        setUsers(Array.isArray(usersData) ? usersData : []);
-        setUserToEdit(null);
-      } catch (error) {
-        console.error('Erro ao atualizar usuário:', error);
-        alert('Erro ao atualizar usuário. Tente novamente.');
-      }
-    }
-  };
-
-  const handleEditUser = (user: User) => {
-    setUserToEdit(user);
-    setEditName(user.name);
-    setEditEmail(user.email);
-    setEditBirthDate(dayjs(user.birthDate).format('YYYY-MM-DD'));
-  };
-
-  const handleDeleteUser = async (id: string) => {
-    try {
-      await deleteUser(id);
-      const usersData = await getUsers();
-      setUsers(Array.isArray(usersData) ? usersData : []);
-    } catch (error) {
-      console.error('Erro ao excluir usuário:', error);
-      alert('Erro ao excluir usuário. Tente novamente.');
-    }
-  };
+    fetchUsers();
+  }, [fetchUsers]);
 
   return (
     <>
@@ -111,7 +35,7 @@ function Home(): JSX.Element {
               editBirthDate={editBirthDate}
               setEditBirthDate={setEditBirthDate}
               onSave={handleUpdateUser}
-              onCancel={() => setUserToEdit(null)}
+              onCancel={() => handleEditUser(null)}
             />
           )}
         </div>
@@ -160,4 +84,5 @@ function Home(): JSX.Element {
 }
 
 export default Home;
+
 

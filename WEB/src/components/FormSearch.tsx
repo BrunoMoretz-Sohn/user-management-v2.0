@@ -4,14 +4,14 @@ import Button from '../components/commons/Button';
 import InputField from '../components/commons/InputField';
 
 interface FormSearchProps {
-  onSearch: () => void;
+  onSearch: (param: string) => void;
   searchParam: string;
   setSearchParam: (param: string) => void;
 }
 
 const FormSearch: React.FC<FormSearchProps> = ({ onSearch, searchParam, setSearchParam }) => {
   const handleSearch = () => {
-    onSearch();
+    onSearch(searchParam);
     setSearchParam('');
   };
 
@@ -36,6 +36,7 @@ const FormSearch: React.FC<FormSearchProps> = ({ onSearch, searchParam, setSearc
 };
 
 export default FormSearch;
+
 
 
 
