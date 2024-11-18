@@ -6,83 +6,119 @@ import dayjs from 'dayjs';
 import { TbUserEdit, TbTrash } from 'react-icons/tb';
 import Logo from '../../assets/Logo.png';
 import { useUserActions } from '../../hooks/useUserActions';
+import { User } from '@types';
+import GlobalStyles from '../../styles/home/global';
+
+const { Container, ImgLogo, Heading, Title, Paragraph } = GlobalStyles;
+
 
 function Home(): JSX.Element {
   const [searchParam, setSearchParam] = useState<string>('');
-  const { users, userToEdit, editName, setEditName, editEmail, setEditEmail, editBirthDate, setEditBirthDate, fetchUsers, handleCreateUser, handleGetUser, handleUpdateUser, handleEditUser, handleDeleteUser } = useUserActions();
+  const { users, userToEdit, createUserMutation, updateUserMutation, deleteUserMutation } = useUserActions();
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (createUserMutation.isSuccess) {
+      createUserMutation.reset();
+    }
+  }, [createUserMutation]);
+
+  const handleCreateUser = async (
+    name: string,
+    email: string,
+    birthDate: string
+  ): Promise<void> => {
+    try {
+      await createUserMutation.mutateAsync({ name, email, birthDate });
+    } catch (error) {
+      console.error('Erro ao cadastrar usuário:', error);
+    }
+  };
+
+  const handleGetUser = (param: string): User[] => {
+    setSearchParam(param);
+    return users.filter(
+      (user: User) =>
+        user.name.toLowerCase().includes(param.toLowerCase()) ||
+        user.email.toLowerCase().includes(param.toLowerCase())
+    );
+  };
+
+  const handleUpdateUser = async (user: User | null): Promise<void> => {
+    if (user) {
+      await updateUserMutation.mutateAsync(user);
+    }
+  };
+
+  const handleDeleteUser = async (id: string): Promise<void> => {
+    await deleteUserMutation.mutateAsync(id);
+  };
 
   return (
-    <>
-      <div className='img-logo'>
-        <img src={Logo} alt="Logo" className='Logo' title="User Management Logo" />
-        <h3>USER MANAGEMENT</h3>
+    <Container>
+      <ImgLogo>
+        <img src={Logo} alt="Logo" className="Logo" title="User Management Logo" />
+        <Heading>USER MANAGEMENT</Heading>
+      </ImgLogo>
+
+      <Title>Gerenciamento de Usuários</Title>
+      <Paragraph>
+        Utilize o sistema para buscar usuários, cadastrar novos perfis e gerenciar informações.
+      </Paragraph>
+
+      <div className="form-container">
+        <FormRegister onSubmit={handleCreateUser} />
+        <FormSearch searchParam={searchParam} setSearchParam={setSearchParam} onSearch={handleGetUser} />
+        {userToEdit && (
+          <FormEdit
+            user={userToEdit}
+            onSave={handleUpdateUser}
+            onCancel={() => handleUpdateUser(null)}
+          />
+        )}
       </div>
-      <div className='container'>
-        <div className='form-container'>
-          <FormRegister onSubmit={handleCreateUser} />
-          <FormSearch searchParam={searchParam} setSearchParam={setSearchParam} onSearch={handleGetUser} />
-          {userToEdit && (
-            <FormEdit
-              user={userToEdit}
-              editName={editName}
-              setEditName={setEditName}
-              editEmail={editEmail}
-              setEditEmail={setEditEmail}
-              editBirthDate={editBirthDate}
-              setEditBirthDate={setEditBirthDate}
-              onSave={handleUpdateUser}
-              onCancel={() => handleEditUser(null)}
-            />
+
+      <div className="users-container">
+        <header>
+          <h2>Perfis Ativos</h2>
+          <p>Utilize as opções de edição e exclusão para gerenciar os dados.</p>
+        </header>
+        <div className="users-list">
+          {users.length > 0 ? (
+            users.map((user: User) => (
+              <div key={user.id} className="card">
+                <div>
+                  <p>Nome: <span>{user.name}</span></p>
+                  <p>Email: <span>{user.email}</span></p>
+                  <p>Data de Nascimento: <span>{dayjs(user.birthDate).format('DD-MM-YYYY')}</span></p>
+                  <p>ID: <span>{user.id}</span></p>
+                </div>
+                <div className="user-button">
+                  <button onClick={() => handleUpdateUser(user)}>
+                    <TbUserEdit id="edit-icon" className="user-icon" />
+                  </button>
+                  <button onClick={() => handleDeleteUser(user.id)}>
+                    <TbTrash id="delete-icon" className="user-icon" />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>Nenhum usuário encontrado.</p>
           )}
         </div>
-        <div className='users-container'>
-          <div className="intro-container">
-            <div className="intro-text">
-              <h4>Utilize o sistema para buscar usuários, cadastrar novos perfis e gerenciar informações.</h4>
-              <p>A função de busca permite localizar rapidamente um usuário, enquanto o cadastro e a edição facilitam a atualização de dados conforme necessário.</p>
-            </div>
-            <img src={Logo} alt="Logo-intro" className='Logo-intro' title="Main Logo" />
-          </div>
-          <div className='list-container'>
-            <header>
-              <h2>Perfis Ativos</h2>
-              <p>Utilize as opções de edição e exclusão para gerenciar os dados.</p>
-            </header>
-            <div className='users-list'>
-              {users.length > 0 ? (
-                users.map((user) => (
-                  <div key={user.id} className="card">
-                    <div>
-                      <p>Nome: <span>{user.name}</span></p>
-                      <p>Email: <span>{user.email}</span></p>
-                      <p>Data de Nascimento: <span>{dayjs(user.birthDate).format('DD-MM-YYYY')}</span></p>
-                      <p>ID: <span>{user.id}</span></p>
-                    </div>
-                    <div className="user-button">
-                      <button onClick={() => handleEditUser(user)}>
-                        <TbUserEdit id="edit-icon" className="user-icon" />
-                      </button>
-                      <button onClick={() => handleDeleteUser(user.id)}>
-                        <TbTrash id="delete-icon" className="user-icon" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p>Nenhum usuário encontrado.</p>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
-    </>
+    </Container>
   );
 }
 
 export default Home;
+
+
+
+
+
+
+
+
 
 

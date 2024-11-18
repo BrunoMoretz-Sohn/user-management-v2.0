@@ -1,62 +1,63 @@
-import { useState, useCallback } from 'react';
-import { getUsers, createUser, getUser, updateUser, deleteUser, User } from '../services/userService';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { getUsers, createUser, updateUser, deleteUser, User } from '../services/userService';
+import { UserContext } from '../context/UserContext';
+import { useContext, useState } from 'react';
+import { z } from 'zod';
+
+const userSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  email: z.string().email('E-mail inválido'),
+  birthDate: z.string().min(10, 'Data de nascimento é obrigatória'),
+});
 
 export function useUserActions() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const context = useContext(UserContext);
+  
+ 
+  if (!context) {
+    throw new Error('UserContext must be used within a UserProvider');
+  }
+
+  const { users, setUsers, userToEdit, setUserToEdit } = context;
   const [editName, setEditName] = useState<string>('');
   const [editEmail, setEditEmail] = useState<string>('');
   const [editBirthDate, setEditBirthDate] = useState<string>('');
+  const queryClient = useQueryClient();
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const usersData = await getUsers();
-      setUsers(usersData);
-    } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+  useQuery('users', getUsers, {
+    onSuccess: (data) => {
+      setUsers(data);
+    },
+  });
+
+  const createUserMutation = useMutation(
+    (newUser: { name: string; email: string; birthDate: string }) => createUser(newUser),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('users');
+      },
     }
-  }, []);
+  );
 
-  const handleCreateUser = useCallback(async (name: string, email: string, birthDate: string) => {
-    try {
-      await createUser(name, email, birthDate);
-      fetchUsers();  // Recarregar a lista de usuários após criar um novo
-    } catch (error) {
-      console.error('Erro ao criar usuário:', error);
+  const updateUserMutation = useMutation(
+    (user: User) => updateUser(user.id, user.name, user.email, user.birthDate),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('users');
+      },
     }
-  }, [fetchUsers]);
+  );
 
-  const handleGetUser = useCallback(async (searchParam: string) => {
-    try {
-      const user = await getUser(searchParam);
-      if (user) {
-        setUsers([user]);
-        setUserToEdit(user);
-        setEditName(user.name);
-        setEditEmail(user.email);
-        setEditBirthDate(user.birthDate);
-      } else {
-        setUsers([]);
-        setUserToEdit(null);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar usuário:', error);
+  const deleteUserMutation = useMutation(
+    (id: string) => deleteUser(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('users');
+      },
     }
-  }, []);
+  );
 
-  const handleUpdateUser = useCallback(async () => {
-    if (userToEdit) {
-      try {
-        await updateUser(userToEdit.id, editName, editEmail, editBirthDate);
-        fetchUsers();
-        setUserToEdit(null);
-      } catch (error) {
-        console.error('Erro ao atualizar usuário:', error);
-      }
-    }
-  }, [userToEdit, editName, editEmail, editBirthDate, fetchUsers]);
-
-  const handleEditUser = useCallback((user: User | null) => {
+  const handleEditUser = (user: User | null) => {
     setUserToEdit(user);
     if (user) {
       setEditName(user.name);
@@ -67,31 +68,36 @@ export function useUserActions() {
       setEditEmail('');
       setEditBirthDate('');
     }
-  }, []);
+  };
 
-  const handleDeleteUser = useCallback(async (id: string) => {
+  const validateUserData = (data: { name: string; email: string; birthDate: string }) => {
     try {
-      await deleteUser(id);
-      fetchUsers();
-    } catch (error) {
-      console.error('Erro ao excluir usuário:', error);
+      userSchema.parse(data);
+      return true;
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return e.errors.map((err) => err.message);
+      }
+      return [];
     }
-  }, [fetchUsers]);
+  };
 
   return {
     users,
     userToEdit,
+    createUserMutation,
+    updateUserMutation,
+    deleteUserMutation,
+    handleEditUser,
+    validateUserData,
     editName,
     setEditName,
     editEmail,
     setEditEmail,
     editBirthDate,
     setEditBirthDate,
-    fetchUsers,
-    handleCreateUser,
-    handleGetUser,
-    handleUpdateUser,
-    handleEditUser,
-    handleDeleteUser,
   };
 }
+
+
+

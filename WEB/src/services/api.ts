@@ -13,7 +13,10 @@ api.interceptors.response.use(
   (error: AxiosError<ApiError>) => {
     if (error.response) {
       console.error('Erro na resposta do servidor:', error.response.data);
-      alert(`Erro: ${error.response.data.message || 'Ocorreu um erro inesperado.'}`);
+      
+      if (!error.response.data.message) {
+        alert('Erro inesperado, tente novamente mais tarde.');
+      }
     } else if (error.request) {
       console.error('Erro na requisição:', error.request);
       alert('Erro: O servidor não respondeu. Tente novamente mais tarde.');
@@ -24,6 +27,7 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;
 
