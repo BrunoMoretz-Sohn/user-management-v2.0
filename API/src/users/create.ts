@@ -13,7 +13,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
     if (existingUser) {
       res.status(400).json({ error: 'E-mail já cadastrado' });
-      return; // Retornar após enviar a resposta
+      return; 
     }
 
     const user = await prisma.user.create({
